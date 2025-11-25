@@ -5,7 +5,7 @@ import "time"
 type AchievementReference struct {
 	ID                 string    `json:"id"`
 	StudentID          string    `json:"student_id"`
-	MongoAchievementID string    `json:"mongo_achievement_id"` // will be null until Mongo created
+	MongoAchievementID string    `json:"mongo_achievement_id"`
 	Status             string    `json:"status"`
 	RejectionNote      string    `json:"rejection_note"`
 	SubmittedAt        time.Time `json:"submitted_at"`

@@ -37,6 +37,23 @@ WHERE u.username = $1 OR u.email = $1`, q)
 	return &u, pwd, nil
 }
 
+func (r *UserRepo) GetByID(id string) (*model.User, error) {
+	row := r.DB.QueryRow(`
+SELECT u.id, u.username, u.email, u.full_name, u.role_id, r.name, u.is_active, u.created_at, u.updated_at
+FROM users u LEFT JOIN roles r ON u.role_id = r.id
+WHERE u.id = $1`, id)
+
+	var u model.User
+	err := row.Scan(&u.ID, &u.Username, &u.Email, &u.FullName, &u.RoleID, &u.RoleName, &u.IsActive, &u.CreatedAt, &u.UpdatedAt)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
 func (r *UserRepo) GetAll() ([]model.User, error) {
 	rows, err := r.DB.Query(`
 SELECT u.id,u.username,u.email,u.full_name,u.role_id,r.name,u.is_active,u.created_at,u.updated_at
@@ -52,4 +69,20 @@ FROM users u LEFT JOIN roles r ON u.role_id = r.id ORDER BY u.created_at DESC`)
 		res = append(res, u)
 	}
 	return res, nil
+}
+
+func (r *UserRepo) Update(id string, req model.CreateUserRequest) error {
+	_, err := r.DB.Exec(`UPDATE users SET username=$1, email=$2, full_name=$3, role_id=$4, updated_at=NOW() WHERE id=$5`,
+		req.Username, req.Email, req.FullName, req.RoleID, id)
+	return err
+}
+
+func (r *UserRepo) Delete(id string) error {
+	_, err := r.DB.Exec(`DELETE FROM users WHERE id=$1`, id)
+	return err
+}
+
+func (r *UserRepo) UpdateRole(id string, roleID string) error {
+	_, err := r.DB.Exec(`UPDATE users SET role_id=$1, updated_at=NOW() WHERE id=$2`, roleID, id)
+	return err
 }
